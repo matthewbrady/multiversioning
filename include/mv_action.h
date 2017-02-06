@@ -112,6 +112,15 @@ class CompositeKey {
 
 };// __attribute__((__packed__, __aligned__(64)));
 
+// An Action seems to be the description of what a part of transaction is.
+// More specifically, it is the read or write of a given transaction
+//
+// That said, an Action is meant to be purely virtual and inherited from.
+//
+// TODO:
+//    Why are we using these as "actions" rather than "transactions"? Maybe
+//    its just lingo, but this doens't really make sense. Specifically, what
+//    is a transaction in the system? Just a bunch of actions?
 class Action {
  protected:
         CompositeKey GenerateKey(bool is_rmw, uint32_t tableId, uint64_t key);
