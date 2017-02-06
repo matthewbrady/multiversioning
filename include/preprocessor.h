@@ -155,5 +155,103 @@ class MVScheduler : public Runnable {
         MVScheduler(MVSchedulerConfig config);
 };
 
+struct BatchSchedulerConfig {
+  int cpuNumber;
+  uint32_t threadId;
+  // TODO: do we need this?
+  //    Read more of src/mv_record.cc and src/mv_record.h. Both of them show how 
+  //    records are being allocated. It seems that we don't need this since we 
+  //    are not managing versions and such...
+  //
+  //    For now, I think we don't actually need this at all.
+  //
+  size_t allocatorSize;         // Scheduler thread's local sticky allocator
+  // TODO:
+  //    What exactly is this and why are we considering database partitions in 
+  //    a local scenario?
+  //
+  //    There is a MVTablePartition class which is a single-writer hashtable.
+  //    I don't think we need that at all. Our database is much simpler -- it's just
+  //    a table indexed by keys. Why this choice?
+  //
+  //    In this world a record is identified by a tuple (partition, key, version). 
+  //    We would likely just want key, since we don't partition the db itself.
+  //    Right?
+  uint32_t numTables;           // Number of tables in the system
+  size_t *tblPartitionSizes;    // Size of each table's partition
+  
+  // huh?
+  //
+  uint32_t numOutputs;
+        
+  uint32_t numSubords;
+  uint32_t numRecycleQueues;
+
+  // TODO:
+  //    SimpleQueue is not concurrent. Who uses it and how? Why is it thread safe?
+  //    This seems very fishy, since Jose mentioned those threads are being used
+  //    for communication between threads.
+  //
+  //    Also, seems like CAS is redefined within ConcurrentQueue for some reason.
+  //    Push it to some common library?
+  //
+  //    Why does the config own these?
+  SimpleQueue<ActionBatch> *inputQueue;
+  SimpleQueue<ActionBatch> *outputQueues;
+  SimpleQueue<ActionBatch> **pubQueues;
+  SimpleQueue<ActionBatch> **subQueues;
+  SimpleQueue<MVRecordList> **recycleQueues;
+
+  // TODO:
+  //    Huh? This is something that is being used within MVRecordAllocator but... why?
+        int worker_start;
+        int worker_end;
+};
+
+
+/*
+ * MVScheduler implements scheduling logic. The scheduler is partitioned across 
+ * several physical cores.
+ */
+class BatchScheduler : public Runnable {
+ private:
+    BatchSchedulerConfig config;
+    MVRecordAllocator *alloc;
+
+    MVTablePartition **partitions;
+
+    uint32_t epoch;
+    uint32_t txnCounter;
+    uint64_t txnMask;
+
+    uint32_t threadId;
+
+ protected:
+    // TODO:
+    //    Definitely override this
+        virtual void StartWorking();
+        // TODO:
+        //    We don't really need this, do we?
+        void ProcessWriteset(mv_action *action);
+        // TODO:
+        //    Definitely need this, and most of this stuff will
+        //    be the crux of implementation. That said, we should first 
+        //    cur down the mv_action class and establish what our txn
+        //    actually looks like.
+        void ScheduleTransaction(mv_action *action);
+
+        // TODO:
+        //    Huh?
+    virtual void Init();
+    virtual void Recycle();
+ public:
+    
+    void* operator new (std::size_t sz, int cpu) {
+            return alloc_mem(sz, cpu);
+    }
+
+        static uint32_t NUM_CC_THREADS;
+        MVScheduler(MVSchedulerConfig config);
+};
 
 #endif          /* PREPROCESSOR_H_ */
