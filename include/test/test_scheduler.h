@@ -6,9 +6,9 @@
 class TestScheduler : public Scheduler {
 public:
   TestScheduler(SchedulerConfig cf): Scheduler(cf) {};
-  std::vector<std::unique_ptr<BatchAction>> put_actions;
+  std::vector<std::unique_ptr<BatchActionInterface>> put_actions;
   
-  void put_action(std::unique_ptr<BatchAction> act) override {
+  void put_action(std::unique_ptr<BatchActionInterface> act) override {
     put_actions.push_back(std::move(act));
   };
 };

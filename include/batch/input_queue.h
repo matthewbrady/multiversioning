@@ -2,7 +2,7 @@
 #define _GLOBAL_INPUT_QUEUE_H_
 
 #include "batch/MS_queue.h"
-#include "batch/batch_action.h"
+#include "batch/batch_action_interface.h"
 #include "batch/scheduler.h"
 
 #include <vector>
@@ -24,11 +24,11 @@ class Scheduler;
  *    Enqueueing is done by the simulation framework, which ensures that only one thread
  *    enqueues at a time.
  */
-class InputQueue : public MSQueue<std::unique_ptr<BatchAction>> {
+class InputQueue : public MSQueue<std::unique_ptr<BatchActionInterface>> {
   private:
     uint64_t holder;
     std::vector<Scheduler*> schedulers;
-    using MSQueue<std::unique_ptr<BatchAction>>::merge_queue;
+    using MSQueue<std::unique_ptr<BatchActionInterface>>::merge_queue;
   public:
     InputQueue();
     void initialize(std::vector<Scheduler*> schedulers);

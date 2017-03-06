@@ -1,7 +1,7 @@
 #ifndef _CONTAINER_H_
 #define _CONTAINER_H_
 
-#include <batch/batch_action.h>
+#include <batch/batch_action_interface.h>
 
 #include <memory>
 #include <vector>
@@ -17,7 +17,7 @@
 // skipping some of them.
 class Container {
 public:
-  typedef std::vector<std::unique_ptr<BatchAction>> BatchActions;
+  typedef std::vector<std::unique_ptr<BatchActionInterface>> BatchActions;
 protected:
   std::unique_ptr<BatchActions> actions_uptr;
 
@@ -33,14 +33,14 @@ public:
    *
    * Returns nullptr if no elements are left.
    */
-  virtual BatchAction* peek_curr_elt() = 0;
+  virtual BatchActionInterface* peek_curr_elt() = 0;
   /*
    * Obtain ownership over the currently minimum element. The element
    * is removed from the container. curr_elt is advanced to the next element.
    *
    * Returns nullptr if no elements are left.
    */
-  virtual std::unique_ptr<BatchAction> take_curr_elt() = 0;
+  virtual std::unique_ptr<BatchActionInterface> take_curr_elt() = 0;
   /*
    * Get the number of elements remaining in the container.
    */

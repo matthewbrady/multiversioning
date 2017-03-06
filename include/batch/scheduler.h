@@ -1,7 +1,7 @@
 #ifndef BATCH_SCHEDULER_H_
 #define BATCH_SCHEDULER_H_
 
-#include "batch/batch_action.h"
+#include "batch/batch_action_interface.h"
 #include "batch/lock_table.h"
 #include "batch/MS_queue.h"
 #include "batch/container.h"
@@ -91,7 +91,7 @@ public:
   SchedulerState get_state();
   unsigned int get_max_actions();
 
-  virtual void put_action(std::unique_ptr<BatchAction> act);
+  virtual void put_action(std::unique_ptr<BatchActionInterface> act);
 
   // All of the below are thread safe.
   bool signal_waiting_for_input();

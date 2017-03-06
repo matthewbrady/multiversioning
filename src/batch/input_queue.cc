@@ -34,7 +34,7 @@ void InputQueue::obtain_batch(Scheduler* s) {
     while (s->get_state() != SchedulerState::input);
   } 
 
-  std::unique_ptr<BatchAction>* act;
+  std::unique_ptr<BatchActionInterface>* act;
   for (unsigned int actionsTaken = 0; 
       actionsTaken < s->get_max_actions(); 
       actionsTaken ++) {

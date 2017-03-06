@@ -27,8 +27,9 @@ void LockTable::merge_batch_table(BatchLockTable& blt) {
 
 BatchLockTable::BatchLockTable() {}
 
-void BatchLockTable::insert_lock_request(std::shared_ptr<BatchAction> req) {
-  auto add_request = [this, &req](BatchAction::RecSet* set, LockType typ) {
+void BatchLockTable::insert_lock_request(std::shared_ptr<BatchActionInterface> req) {
+  auto add_request = [this, &req](
+      BatchActionInterface::RecordKeySet* set, LockType typ) {
     std::shared_ptr<BatchLockQueue> blq;
     for (auto& i : *set) {
       blq = lock_table.emplace(i, std::make_shared<BatchLockQueue>()).first->second;

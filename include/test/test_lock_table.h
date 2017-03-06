@@ -1,7 +1,7 @@
 #ifndef TEST_LOCK_TABLE_H_
 #define TEST_LOCK_TABLE_H_
 
-#include "batch/batch_action.h"
+#include "batch/batch_action_interface.h"
 #include "test/test_lock_stage.h"
 
 class TestLockTable : public LockTable {
@@ -11,7 +11,7 @@ class TestLockTable : public LockTable {
       return lock_table;
     }
 
-    bool lock_table_contains_stage(BatchAction::RecKey k, LockStage* ls) {
+    bool lock_table_contains_stage(RecordKey k, LockStage* ls) {
       auto lq = lock_table.find(k);
       if (lq == lock_table.end()) return false;
 
