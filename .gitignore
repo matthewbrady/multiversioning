@@ -10,3 +10,5 @@ results
 *.pyc
 *#*
 nohup.out
+*.sw[a-z]
+tags
