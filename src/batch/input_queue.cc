@@ -22,8 +22,8 @@ void InputQueue::obtain_batch(Scheduler* s) {
   // the input queue has been initialized
   assert(schedulers.size() > 0);
   assert(
-      s->getState() == SchedulerState::waiting_for_input ||
-      s->getState() == SchedulerState::input);
+      s->get_state() == SchedulerState::waiting_for_input ||
+      s->get_state() == SchedulerState::input);
   
   // fast track -- there is currently no thread trying to
   // get actions
@@ -31,15 +31,15 @@ void InputQueue::obtain_batch(Scheduler* s) {
   barrier();
   if (s != schedulers[h]) {
     // there is some other thread getting the actions.
-    while (s->getState() != SchedulerState::input);
+    while (s->get_state() != SchedulerState::input);
   } 
 
   std::unique_ptr<BatchAction>* act;
   for (unsigned int actionsTaken = 0; 
-      actionsTaken < s->getMaxActions(); 
+      actionsTaken < s->get_max_actions(); 
       actionsTaken ++) {
     while ((act = try_pop_head()) == nullptr);
-    s->putAction(std::move(*act));
+    s->put_action(std::move(*act));
   }
 
   // move the holder to the next scheduler in turn.
@@ -49,8 +49,8 @@ void InputQueue::obtain_batch(Scheduler* s) {
 
   // signal only if the next thread is already waiting.
   bool cas_success = false;
-  if (schedulers[next]->getState() == SchedulerState::waiting_for_input) {
-    cas_success = schedulers[next]->signalInput();
+  if (schedulers[next]->get_state() == SchedulerState::waiting_for_input) {
+    cas_success = schedulers[next]->signal_input();
     assert(cas_success);
   }
 

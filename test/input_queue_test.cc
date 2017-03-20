@@ -46,7 +46,7 @@ void assertActionsAdded(
   TestAction* currAction = nullptr;
   
   for (unsigned int i = from; i <= to; i++) {
-    currAction = static_cast<TestAction*>(s->putActions[i - from].get());
+    currAction = static_cast<TestAction*>(s->put_actions[i - from].get());
     ASSERT_EQ(i, currAction->get_id()) <<
       "Error within test starting at line: " << line;
   }
@@ -56,7 +56,7 @@ TEST_F(InputQueueTest, obtain_batchNonConcurrentTest) {
   iq->obtain_batch(schedulers[0]);
   TestScheduler* s = static_cast<TestScheduler*>(schedulers[0]);
 
-  ASSERT_EQ(100, s->putActions.size());
+  ASSERT_EQ(100, s->put_actions.size());
   assertActionsAdded(s, __LINE__);
 } 
 
@@ -79,7 +79,7 @@ void runConcurrentTest(
   for (unsigned int i = 0; i < number_of_threads; i++) {
     s = static_cast<TestScheduler*>(schedulers[i]);
 
-    ASSERT_EQ(batch_size, s->putActions.size());
+    ASSERT_EQ(batch_size, s->put_actions.size());
     assertActionsAdded(s, line, batch_size * i, (i+1)*batch_size - 1);
   }
 };

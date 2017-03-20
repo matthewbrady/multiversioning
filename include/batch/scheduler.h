@@ -61,6 +61,7 @@ enum class SchedulerState {
 //          Tests for:
 //            - StartWorking 
 //            - Init
+//            - make_batch_schedule
 class Scheduler : public Runnable {
 public:
   typedef std::unique_ptr<std::vector<std::unique_ptr<BatchAction>>> actions;
@@ -71,8 +72,8 @@ protected:
   SchedulerState state;
 
   // state change is done using CAS and is thread safe.
-  bool changeState(SchedulerState nextState, SchedulerState expectedCurrState);
-  void makeBatchSchedule();
+  bool change_state(SchedulerState nextState, SchedulerState expectedCurrState);
+  void make_batch_schedule();
 public:
   Scheduler(SchedulerConfig sc);
 
@@ -81,19 +82,19 @@ public:
   void Init() override;
 
   // own functions
-  SchedulerState getState();
-  unsigned int getMaxActions();
+  SchedulerState get_state();
+  unsigned int get_max_actions();
 
-  virtual void putAction(std::unique_ptr<BatchAction> act);
+  virtual void put_action(std::unique_ptr<BatchAction> act);
 
   // All of the below are thread safe.
-  bool signalWaitingForInput();
-  bool signalInput();
-  bool signalBatchCreation();
-  bool signalWaitingForMerge();
-  bool signalMerging();
-  bool signalWaitingForExecSignal();
-  bool signalExecSignal();
+  bool signal_waiting_for_input();
+  bool signal_input();
+  bool signal_batch_creation();
+  bool signal_waiting_for_merge();
+  bool signal_merging();
+  bool signal_waiting_for_exec_signal();
+  bool signal_exec_signal();
 };
 
 #endif // BATCH_SCHEDULER_H_

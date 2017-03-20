@@ -30,35 +30,35 @@ protected:
 
 TEST_F(SchedulerTest, LegalStateTransitionsTest) {
   auto checkState = [this](SchedulerState expected, int line) {
-    ASSERT_EQ(this->s->getState(), expected) << "from line " << line;
+    ASSERT_EQ(this->s->get_state(), expected) << "from line " << line;
   };
   checkState(SchedulerState::waiting_for_input, __LINE__);
-  s->signalInput();
+  s->signal_input();
   checkState(SchedulerState::input, __LINE__);
-  s->signalBatchCreation();
+  s->signal_batch_creation();
   checkState(SchedulerState::batch_creation, __LINE__);
-  s->signalWaitingForMerge();
+  s->signal_waiting_for_merge();
   checkState(SchedulerState::waiting_to_merge, __LINE__);
-  s->signalMerging();
+  s->signal_merging();
   checkState(SchedulerState::batch_merging, __LINE__);
-  s->signalWaitingForExecSignal();
+  s->signal_waiting_for_exec_signal();
   checkState(SchedulerState::waiting_to_signal_execution, __LINE__);
-  s->signalExecSignal();
+  s->signal_exec_signal();
   checkState(SchedulerState::signaling_execution, __LINE__);
-  s->signalWaitingForInput();
+  s->signal_waiting_for_input();
   checkState(SchedulerState::waiting_for_input, __LINE__);
 };
 
 TEST_F(SchedulerTest, IllegalStateTransitionsTest) {
   typedef bool (Scheduler::*signalFunction)();
   std::vector<std::pair<signalFunction, SchedulerState>> legal_pairs = {
-    {&Scheduler::signalInput, SchedulerState::waiting_for_input},
-    {&Scheduler::signalBatchCreation, SchedulerState::input},
-    {&Scheduler::signalWaitingForMerge, SchedulerState::batch_creation},
-    {&Scheduler::signalMerging, SchedulerState::waiting_to_merge},
-    {&Scheduler::signalWaitingForExecSignal, SchedulerState::batch_merging},
-    {&Scheduler::signalExecSignal, SchedulerState::waiting_to_signal_execution},
-    {&Scheduler::signalWaitingForInput, SchedulerState::signaling_execution}
+    {&Scheduler::signal_input, SchedulerState::waiting_for_input},
+    {&Scheduler::signal_batch_creation, SchedulerState::input},
+    {&Scheduler::signal_waiting_for_merge, SchedulerState::batch_creation},
+    {&Scheduler::signal_merging, SchedulerState::waiting_to_merge},
+    {&Scheduler::signal_waiting_for_exec_signal, SchedulerState::batch_merging},
+    {&Scheduler::signal_exec_signal, SchedulerState::waiting_to_signal_execution},
+    {&Scheduler::signal_waiting_for_input, SchedulerState::signaling_execution}
   };
 
   // check that all transitions that do not expect the scheduler to be in 
