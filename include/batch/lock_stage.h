@@ -25,8 +25,7 @@
  */
 class LockStage {
 public:
-  typedef std::shared_ptr<BatchAction> Action_spt;
-  typedef std::unordered_set<Action_spt> RequestingActions;
+  typedef std::unordered_set<std::shared_ptr<BatchAction>> RequestingActions;
 
 protected:
   // The number of transactions holding on to the lock.
@@ -44,7 +43,7 @@ public:
   //
   // May only be called in a single-threaded scenarios. We do not coalesce adjacent shared stages
   // into single stages.
-  bool add_to_stage(Action_spt txn, LockType lt);
+  bool add_to_stage(std::shared_ptr<BatchAction> txn, LockType lt);
   // Returns the new value of holders
   uint64_t decrement_holders(); 
   

@@ -8,8 +8,10 @@
 
 class BatchAction : public translator {
   public:
+    // typedefs
     typedef uint64_t RecKey;
     typedef std::unordered_set<RecKey> RecSet;
+
     BatchAction(txn* t): translator(t) {};
 
     virtual void add_read_key(RecKey rk) = 0;

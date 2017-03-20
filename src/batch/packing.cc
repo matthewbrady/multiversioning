@@ -46,13 +46,13 @@ bool Packer::txn_conflicts(
       conflictExists(t_sh, ex_locks_in_packing));
 }
 
-Packer::ActionUptVector Packer::get_packing(Container* c) {
+Packer::BatchActions Packer::get_packing(Container* c) {
   RecordSet held_ex_locks;
   RecordSet held_sh_locks; 
 
-  ActionUptVector action_in_packing;
+  BatchActions actions_in_packing;
   BatchAction* next_action;
-  Action_upt action;
+  std::unique_ptr<BatchAction> action;
 
   auto merge_sets = [](RecordSet* mergeTo, RecordSet* mergeFrom) {
     for (auto it = mergeFrom->begin(); it != mergeFrom->end(); it++) {
@@ -68,11 +68,11 @@ Packer::ActionUptVector Packer::get_packing(Container* c) {
 
       // transition the ownership
       action = c->take_curr_elt();
-      action_in_packing.push_back(std::move(action));
+      actions_in_packing.push_back(std::move(action));
       continue;
     }
     c->advance_to_next_elt();
   }
 
-  return action_in_packing;
+  return actions_in_packing;
 }

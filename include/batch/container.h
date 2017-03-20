@@ -17,14 +17,13 @@
 // skipping some of them.
 class Container {
 public:
-  typedef std::unique_ptr<BatchAction> action_uptr;
-  typedef std::vector<action_uptr> actions_vec;
+  typedef std::vector<std::unique_ptr<BatchAction>> BatchActions;
 protected:
-  std::unique_ptr<actions_vec> actions_uptr;
+  std::unique_ptr<BatchActions> actions_uptr;
 
   Container() = delete;
   Container(const Container& c) = delete;
-  Container(std::unique_ptr<actions_vec> actions):
+  Container(std::unique_ptr<BatchActions> actions):
     actions_uptr(std::move(actions))
   {};
 
@@ -41,7 +40,7 @@ public:
    *
    * Returns nullptr if no elements are left.
    */
-  virtual action_uptr take_curr_elt() = 0;
+  virtual std::unique_ptr<BatchAction> take_curr_elt() = 0;
   /*
    * Get the number of elements remaining in the container.
    */

@@ -23,10 +23,8 @@
  *    Usage is described within include/batch/container.h
  */
 class ArrayContainer : public Container {
-public:
-  typedef std::unique_ptr<BatchAction> action_uptr;
-  typedef std::vector<action_uptr> actions_vec;
 private:
+  typedef Container::BatchActions BatchActions; 
   uint32_t current_min_index;
   uint32_t current_barrier_index;
 protected:
@@ -36,14 +34,10 @@ protected:
   bool arr_is_empty();
 
 public:
-  ArrayContainer(std::unique_ptr<actions_vec> actions):
-    Container(std::move(actions)), current_min_index(0), current_barrier_index(0)
-  {
-    sort_remaining();
-  };
+  ArrayContainer(std::unique_ptr<BatchActions> actions);
 
   BatchAction* peek_curr_elt() override;
-  action_uptr take_curr_elt() override;
+  std::unique_ptr<BatchAction> take_curr_elt() override;
   void advance_to_next_elt() override;
   void sort_remaining() override;
   uint32_t get_remaining_count() override;

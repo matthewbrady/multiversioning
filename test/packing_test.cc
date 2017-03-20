@@ -21,8 +21,8 @@ protected:
   }
 
   void finalizeAddingActions() {
-    std::unique_ptr<ArrayContainer::actions_vec> actions 
-      = std::make_unique<ArrayContainer::actions_vec>();
+    std::unique_ptr<Container::BatchActions> actions 
+      = std::make_unique<Container::BatchActions>();
     
     for (unsigned int i = 0; i < readSets.size(); i++) {
       // treat the index as id.
@@ -38,7 +38,7 @@ protected:
   }
 
   std::unordered_set<uint64_t> collect_ids(
-      const Packer::ActionUptVector &packing) {
+      const Container::BatchActions &packing) {
     std::unordered_set<uint64_t> ids;
     
     for (const auto& j : packing) {

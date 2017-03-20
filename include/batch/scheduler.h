@@ -64,9 +64,9 @@ enum class SchedulerState {
 //            - make_batch_schedule
 class Scheduler : public Runnable {
 public:
-  typedef std::unique_ptr<std::vector<std::unique_ptr<BatchAction>>> actions;
+  typedef Container::BatchActions BatchActions;
 protected:
-  actions batch_actions;
+  std::unique_ptr<BatchActions> batch_actions;
   BatchLockTable lt;
   SchedulerConfig conf;
   SchedulerState state;

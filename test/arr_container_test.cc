@@ -18,8 +18,8 @@ protected:
 
   virtual void SetUp() {
     // prep the actions
-    std::unique_ptr<ArrayContainer::actions_vec> actions 
-      = std::make_unique<ArrayContainer::actions_vec>();
+    std::unique_ptr<Container::BatchActions> actions 
+      = std::make_unique<Container::BatchActions>();
     
     for (unsigned int i = 0; i < ACTIONS_NUM; i++) {
       std::unique_ptr<TestAction> ta = std::make_unique<TestAction>(new TestTxn());
