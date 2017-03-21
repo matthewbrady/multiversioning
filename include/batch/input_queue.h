@@ -18,6 +18,11 @@ class Scheduler;
  *    on to the scheduling threads in round-robbin manner. Notice that this means
  *    that the ordering of scheduling threads does not change (i+1 st thread will
  *    get a batch of actions after ith thread. Always.)
+ *
+ *    The input queue is a one-producer, one-consumer MS queue. The implementation
+ *    makes sure that only one scheduler may dequeue transactions at any point in time.
+ *    Enqueueing is done by the simulation framework, which ensures that only one thread
+ *    enqueues at a time.
  */
 class InputQueue : public MSQueue<std::unique_ptr<BatchAction>> {
   private:
