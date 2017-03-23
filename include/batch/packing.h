@@ -2,6 +2,7 @@
 #define PACKING_H_
 
 #include <batch/container.h>
+#include <batch/batch_action.h>
 
 #include <vector>
 #include <unordered_set>
@@ -13,8 +14,6 @@
  **/
 class Packer {
 public:
-  typedef uint64_t RecordKey;
-  typedef std::unordered_set<RecordKey> RecordSet;
   typedef std::unique_ptr<BatchAction> Action_upt;
   typedef std::vector<Action_upt> ActionUptVector;
 private:

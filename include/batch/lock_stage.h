@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <stdint.h>
+#include <unordered_set>
 
 // TODO: Override the new/delete operators
 // TODO: implement a public inheritance test class which provides a == operator.
