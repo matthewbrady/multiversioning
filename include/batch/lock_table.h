@@ -1,7 +1,7 @@
 #ifndef _LOCK_TABLE_H_
 #define _LOCK_TABLE_H_
 
-#include "batch/batch_action.h"
+#include "batch/batch_action_interface.h"
 #include "batch/lock_queue.h"
 
 #include <unordered_map>
@@ -28,7 +28,7 @@ class BatchLockTable;
 //    This should only be done after we have seen that this reduced throughput by a lot.
 class LockTable {
 public:
-  typedef std::unordered_map<BatchAction::RecKey, std::shared_ptr<LockQueue>> LockTableType;
+  typedef std::unordered_map<RecordKey, std::shared_ptr<LockQueue>> LockTableType;
 protected:
   LockTableType lock_table;
   std::mutex merge_batch_table_mutex;
@@ -52,12 +52,12 @@ public:
 //    easily merged into the global LockTable.
 class BatchLockTable {
 public:
-  typedef std::unordered_map<BatchAction::RecKey, std::shared_ptr<BatchLockQueue>> LockTableType;
+  typedef std::unordered_map<RecordKey, std::shared_ptr<BatchLockQueue>> LockTableType;
 protected:
   LockTableType lock_table;
 public:
   BatchLockTable();
-  void insert_lock_request(std::shared_ptr<BatchAction> request);
+  void insert_lock_request(std::shared_ptr<BatchActionInterface> request);
   const LockTableType& get_lock_table_data();
 
   friend class LockTable;

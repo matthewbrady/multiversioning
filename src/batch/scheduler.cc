@@ -12,7 +12,7 @@ Scheduler::Scheduler(SchedulerConfig sc):
 {
   // allocate memory up front.
   batch_actions = 
-    std::make_unique<std::vector<std::unique_ptr<BatchAction>>>(
+    std::make_unique<std::vector<std::unique_ptr<BatchActionInterface>>>(
         sc.batch_size_act);
 }
 
@@ -46,17 +46,17 @@ void Scheduler::make_batch_schedule() {
   // construct array container from the batch
   ArrayContainer ac(std::move(batch_actions));
   batch_actions = 
-    std::make_unique<std::vector<std::unique_ptr<BatchAction>>>(
+    std::make_unique<std::vector<std::unique_ptr<BatchActionInterface>>>(
         conf.batch_size_act);
 
-  std::vector<std::unique_ptr<BatchAction>> packing;
+  std::vector<std::unique_ptr<BatchActionInterface>> packing;
   while (ac.get_remaining_count() != 0) {
     // get packing
     packing = Packer::get_packing(&ac);
     ac.sort_remaining();
     // translate a packing into lock request
-    for (std::unique_ptr<BatchAction>& act : packing) {
-      lt.insert_lock_request(std::shared_ptr<BatchAction>(std::move(act)));
+    for (std::unique_ptr<BatchActionInterface>& act : packing) {
+      lt.insert_lock_request(std::shared_ptr<BatchActionInterface>(std::move(act)));
     }
   }
 }
@@ -65,7 +65,7 @@ unsigned int Scheduler::get_max_actions() {
   return conf.batch_size_act;
 };
 
-void Scheduler::put_action(std::unique_ptr<BatchAction> act) {
+void Scheduler::put_action(std::unique_ptr<BatchActionInterface> act) {
   batch_actions->push_back(std::move(act)); 
 };
 

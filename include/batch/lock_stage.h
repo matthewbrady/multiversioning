@@ -2,10 +2,11 @@
 #define _LOCK_STAGE_H_
 
 #include "batch/lock_types.h"
-#include "batch/batch_action.h"
+#include "batch/batch_action_interface.h"
 
 #include <memory>
 #include <stdint.h>
+#include <unordered_set>
 
 // TODO: Override the new/delete operators
 // TODO: implement a public inheritance test class which provides a == operator.
@@ -25,7 +26,7 @@
  */
 class LockStage {
 public:
-  typedef std::unordered_set<std::shared_ptr<BatchAction>> RequestingActions;
+  typedef std::unordered_set<std::shared_ptr<BatchActionInterface>> RequestingActions;
 
 protected:
   // The number of transactions holding on to the lock.
@@ -43,7 +44,7 @@ public:
   //
   // May only be called in a single-threaded scenarios. We do not coalesce adjacent shared stages
   // into single stages.
-  bool add_to_stage(std::shared_ptr<BatchAction> txn, LockType lt);
+  bool add_to_stage(std::shared_ptr<BatchActionInterface> txn, LockType lt);
   // Returns the new value of holders
   uint64_t decrement_holders(); 
   

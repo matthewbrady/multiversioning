@@ -1,20 +1,20 @@
 #include "batch/packing.h"
-#include "batch/batch_action.h"
+#include "batch/batch_action_interface.h"
 
 bool Packer::txn_conflicts(
-    BatchAction* t,
-    RecordSet* ex_locks_in_packing, 
-    RecordSet* sh_locks_in_packing) {
+    BatchActionInterface* t,
+    RecordKeySet* ex_locks_in_packing, 
+    RecordKeySet* sh_locks_in_packing) {
   auto t_ex = t->get_writeset_handle();
   auto t_sh = t->get_readset_handle();
 
   // We will be iterating over sets. Always pick the smaller one to
   // iterate over.
-  RecordSet* smaller;
-  RecordSet* larger;
+  RecordKeySet* smaller;
+  RecordKeySet* larger;
 
   auto conflictExists = 
-       [&smaller, &larger](RecordSet* rs1, RecordSet* rs2){
+       [&smaller, &larger](RecordKeySet* rs1, RecordKeySet* rs2){
 
     // pick the smaller set to iterate over.
     if (rs1->size() > rs2->size()) {
@@ -47,14 +47,14 @@ bool Packer::txn_conflicts(
 }
 
 Packer::BatchActions Packer::get_packing(Container* c) {
-  RecordSet held_ex_locks;
-  RecordSet held_sh_locks; 
+  RecordKeySet held_ex_locks;
+  RecordKeySet held_sh_locks; 
 
   BatchActions actions_in_packing;
-  BatchAction* next_action;
-  std::unique_ptr<BatchAction> action;
+  BatchActionInterface* next_action;
+  std::unique_ptr<BatchActionInterface> action;
 
-  auto merge_sets = [](RecordSet* mergeTo, RecordSet* mergeFrom) {
+  auto merge_sets = [](RecordKeySet* mergeTo, RecordKeySet* mergeFrom) {
     for (auto it = mergeFrom->begin(); it != mergeFrom->end(); it++) {
       mergeTo->insert(*it);
     }

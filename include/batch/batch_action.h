@@ -1,28 +1,36 @@
 #ifndef BATCH_ACTION_H_
 #define BATCH_ACTION_H_
 
-#include <db.h>
+#include "batch/batch_action_interface.h"
 
-#include <stdint.h>
-#include <unordered_set>
-
-class BatchAction : public translator {
+// BatchAction
+//
+//    Concrete implementation of actions used within our system.
+class BatchAction : public BatchActionInterface {
+  private:
+    RecordKeySet readset;
+    RecordKeySet writeset;
   public:
-    // typedefs
-    typedef uint64_t RecKey;
-    typedef std::unordered_set<RecKey> RecSet;
+    BatchAction(txn* t): BatchActionInterface(t) {};
 
-    BatchAction(txn* t): translator(t) {};
-
-    virtual void add_read_key(RecKey rk) = 0;
-    virtual void add_write_key(RecKey rk) = 0;
+    // override the translator functions
+    virtual void *write_ref(uint64_t key, uint32_t table) override;
+    virtual void *read(uint64_t key, uint32_t table) override;
+ 
+    // override the BatchActionInterface functions
+    virtual void add_read_key(RecordKey rk) override;
+    virtual void add_write_key(RecordKey rk) override;
+   
+    virtual uint64_t get_readset_size() const override;
+    virtual uint64_t get_writeset_size() const override;
+    virtual RecordKeySet* get_readset_handle() override;
+    virtual RecordKeySet* get_writeset_handle() override;
     
-    virtual uint64_t get_readset_size() const = 0;
-    virtual uint64_t get_writeset_size() const = 0;
-    virtual RecSet* get_readset_handle() = 0;
-    virtual RecSet* get_writeset_handle() = 0;
-
-    virtual bool operator<(const BatchAction& ba2) const = 0;
+    // TODO: 
+    //    Do this after we fill in the interface
+    virtual void run() override;
+    virtual bool operator<(const BatchActionInterface& ba2) const override;
+    virtual int rand() override;
 };
 
 #endif //BATCH_ACTION_H_

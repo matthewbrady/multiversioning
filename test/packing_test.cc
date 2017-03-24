@@ -8,14 +8,15 @@
 
 class PackingTest : public testing::Test {
 private:
-  std::vector<TestAction::RecSet> readSets;
-  std::vector<TestAction::RecSet> writeSets;
+  typedef BatchActionInterface::RecordKeySet RecordKeySet;
+  std::vector<RecordKeySet> readSets;
+  std::vector<RecordKeySet> writeSets;
 protected:
   std::unique_ptr<ArrayContainer> testContainer;
 
   void addActionFromSets(
-      TestAction::RecSet writeSet,
-      TestAction::RecSet readSet) {
+      RecordKeySet writeSet,
+      RecordKeySet readSet) {
     readSets.push_back(readSet);
     writeSets.push_back(writeSet);    
   }

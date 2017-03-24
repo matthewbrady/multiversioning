@@ -2,6 +2,7 @@
 #define PACKING_H_
 
 #include <batch/container.h>
+#include <batch/batch_action_interface.h>
 
 #include <vector>
 #include <unordered_set>
@@ -13,16 +14,15 @@
  **/
 class Packer {
 private:
-  typedef BatchAction::RecKey RecordKey;
-  typedef BatchAction::RecSet RecordSet;
+  typedef BatchActionInterface::RecordKeySet RecordKeySet;
   typedef Container::BatchActions BatchActions;
 
   Packer();
 
   static bool txn_conflicts(
-      BatchAction* t, 
-      RecordSet* ex_locks_in_packing, 
-      RecordSet* sh_locks_in_packing); 
+      BatchActionInterface* t, 
+      RecordKeySet* ex_locks_in_packing, 
+      RecordKeySet* sh_locks_in_packing); 
 
 public:
   static BatchActions get_packing(Container* c);
