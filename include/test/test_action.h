@@ -2,6 +2,7 @@
 #define _TEST_ACTION_H_
 
 #include <batch/batch_action.h>
+#include <test/test_txn.h>
 
 /*
  * Simple test fixture for actions.
@@ -18,8 +19,10 @@ class TestAction : public BatchAction {
 private:
   RecSet writeSet;
   RecSet readSet;
+  uint64_t id;
 public: 
-  TestAction(txn* txn): BatchAction(txn) {} 
+  TestAction(txn* txn): BatchAction(txn), id(0) {} 
+  TestAction(txn* txn, uint64_t id): BatchAction(txn), id(id) {}
 
   // override the translator functions
   void *write_ref(uint64_t key, uint32_t table) override {
@@ -48,6 +51,21 @@ public:
     return (get_readset_size() + get_writeset_size() <
       ta.get_readset_size() + ta.get_writeset_size());
   }
+
+  // own functions
+  uint64_t get_id() const {return id;}
+  static TestAction* make_test_action_with_test_txn(
+      RecSet writes,
+      RecSet reads,
+      uint64_t id = 0) {
+    TestAction* ta = new TestAction(new TestTxn());
+
+    for (auto& j : writes) ta->add_write_key(j);
+    for (auto& j : reads) ta->add_read_key(j);
+    ta->id = id;
+
+    return ta;
+  };
 }; 
 
 #endif //_TEST_ACTION_H_

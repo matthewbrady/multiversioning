@@ -1,6 +1,6 @@
 CFLAGS=-O2 -g -Wall -Wextra -Werror -std=c++14 -Wno-sign-compare 
 CFLAGS+=-DSNAPSHOT_ISOLATION=0 -DSMALL_RECORDS=0 -DREAD_COMMITTED=1
-LIBS=-lnuma -lpthread -lrt -lcityhash 
+LIBS=-lnuma -lpthread -lrt -lcityhash
 TEST_LIBS=-lgtest
 CXX=g++-5
 
