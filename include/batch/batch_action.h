@@ -1,58 +1,50 @@
 #ifndef BATCH_ACTION_H_
 #define BATCH_ACTION_H_
 
-#include <db.h>
+#include "batch/batch_action_interface.h"
 
-#include <stdint.h>
-#include <unordered_set>
-#include <city.h>
-
-const uint64_t DEFAULT_TABLE_ID = 0;
-
-class RecordKey {
+// BatchAction
+//
+//    Concrete implementation of actions used within our system.
+class BatchAction : public IBatchAction {
+  private:
+    RecordKeySet readset;
+    RecordKeySet writeset;
   public:
-    uint64_t key;
-    uint64_t table_id;
+    BatchAction(txn* t): IBatchAction(t) {};
 
-    RecordKey(uint64_t key, uint64_t table_id) : key(key), table_id(table_id) {}
+    // override the translator functions
+    virtual void *write_ref(uint64_t key, uint32_t table) override;
+    virtual void *read(uint64_t key, uint32_t table) override;
+ 
+    // TODO:
+    //    Tests for there
+    // override the IBatchAction functions
+    virtual uint64_t notify_lock_obtained() override;
+    virtual bool ready_to_execute() override;
 
-    // If table unspecified, set it to the default table (simplifies creating 
-    // keys for tests, not sure if this is the right place for it) *
-    RecordKey(uint64_t key) : key(key), table_id(DEFAULT_TABLE_ID) {}
+    virtual void add_read_key(RecordKey rk) override;
+    virtual void add_write_key(RecordKey rk) override;
+   
+    virtual uint64_t get_readset_size() const override;
+    virtual uint64_t get_writeset_size() const override;
+    virtual RecordKeySet* get_readset_handle() override;
+    virtual RecordKeySet* get_writeset_handle() override;
 
-    bool operator==(const RecordKey &other) const {
-      return (key == other.key && table_id == other.table_id);
-    }
-};
+    // TODO: 
+    //    Tests for these!
+    virtual bool conditional_atomic_change_state(
+        BatchActionState expected_state,
+        BatchActionState new_state) override;
+    virtual BatchActionState atomic_change_state(
+        BatchActionState new_state) override;
 
-namespace std {
-  template <>
-  struct hash<RecordKey> {
+    // TODO: 
+    //    Do this after we fill in the interface
+    virtual void Run() override;
 
-    size_t operator() (const RecordKey &k) const {
-      return Hash128to64(std::make_pair(k.key, k.table_id)); 
-    }
-
-  };
-
-}
-
-//typedef uint64_t RecordKey;
-typedef std::unordered_set<RecordKey> RecordSet;
-
-class BatchAction : public translator {
-  public:
-    BatchAction(txn* t): translator(t) {};
-
-    virtual void add_read_key(RecordKey rk) = 0;
-    virtual void add_write_key(RecordKey rk) = 0;
-    
-    virtual uint64_t get_readset_size() const = 0;
-    virtual uint64_t get_writeset_size() const = 0;
-    virtual RecordSet* get_readset_handle() = 0;
-    virtual RecordSet* get_writeset_handle() = 0;
-
-    virtual bool operator<(const BatchAction& ba2) const = 0;
+    virtual bool operator<(const IBatchAction& ba2) const override;
+    virtual int rand() override;
 };
 
 #endif //BATCH_ACTION_H_

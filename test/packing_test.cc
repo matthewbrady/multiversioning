@@ -8,21 +8,22 @@
 
 class PackingTest : public testing::Test {
 private:
-  std::vector<TestAction::RecSet> readSets;
-  std::vector<TestAction::RecSet> writeSets;
+  typedef IBatchAction::RecordKeySet RecordKeySet;
+  std::vector<RecordKeySet> readSets;
+  std::vector<RecordKeySet> writeSets;
 protected:
   std::unique_ptr<ArrayContainer> testContainer;
 
   void addActionFromSets(
-      TestAction::RecSet writeSet,
-      TestAction::RecSet readSet) {
+      RecordKeySet writeSet,
+      RecordKeySet readSet) {
     readSets.push_back(readSet);
     writeSets.push_back(writeSet);    
   }
 
   void finalizeAddingActions() {
-    std::unique_ptr<ArrayContainer::actions_vec> actions 
-      = std::make_unique<ArrayContainer::actions_vec>();
+    std::unique_ptr<Container::BatchActions> actions 
+      = std::make_unique<Container::BatchActions>();
     
     for (unsigned int i = 0; i < readSets.size(); i++) {
       // treat the index as id.
@@ -38,7 +39,7 @@ protected:
   }
 
   std::unordered_set<uint64_t> collect_ids(
-      const Packer::ActionUptVector &packing) {
+      const Container::BatchActions &packing) {
     std::unordered_set<uint64_t> ids;
     
     for (const auto& j : packing) {
@@ -63,10 +64,10 @@ protected:
   virtual void SetUp() {} 
 };
 
-// 1 <- T0 <- T1
-// 2 <- T2
-// 3 <- T2 <- T1
-// 4 <- T1
+// Input, all exclusive:
+//    T0: 1
+//    T1: 1, 3, 4
+//    T2: 2, 3
 // Correct packings would be:
 //    1)  T0, T2
 //    2)  T1
@@ -79,11 +80,10 @@ TEST_F(PackingTest, smallestExclusiveResult) {
   assertPackings({{0, 2}, {1}});
 }  
 
-// 1 <- T0 <- T2
-// 2 <- T1 <- T2
-// 3 <- T1
-// 4 <- T2 <- T1
-// 5 <- T1
+// Input, all exclusive:
+//    T0: 1
+//    T1: 2, 3, 4, 5
+//    T2: 1, 2, 4
 // Correct packing: 
 //    1) T0, T1 
 //    2) T2
@@ -96,9 +96,10 @@ TEST_F(PackingTest, smallestLargestExclusiveResult) {
   assertPackings({{0, 1}, {2}});
 }
 
-// 1 <- T0s <- T1s
-// 2 <- T2s <- T1s
-// 3 <- T0s <- T2s
+// Input, all shared:
+//    T0: 1, 3
+//    T1: 1, 2
+//    T2: 2, 3
 // Correct packing: 
 //    1) T0, T1, T2 
 TEST_F(PackingTest, smallSharedOnlyResult) {
@@ -110,9 +111,10 @@ TEST_F(PackingTest, smallSharedOnlyResult) {
   assertPackings({{0, 1, 2}});
 }
 
-// 1 <- T0s <- T1s <- T2s
-// 2 <- T0 <- T2s
-// 3 <- T1 <- T2s
+// Input, mixed:
+//  T0: 1s, 2
+//  T1: 1s, 3
+//  T2: 1s, 2s, 3s
 // Correct packing:
 //    1) T0, T1
 //    2) T2

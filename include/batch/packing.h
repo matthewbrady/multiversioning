@@ -2,7 +2,7 @@
 #define PACKING_H_
 
 #include <batch/container.h>
-#include <batch/batch_action.h>
+#include <batch/batch_action_interface.h>
 
 #include <vector>
 #include <unordered_set>
@@ -13,19 +13,19 @@
  * This is inherently single-threaded and no synchronization if provided.
  **/
 class Packer {
-public:
-  typedef std::unique_ptr<BatchAction> Action_upt;
-  typedef std::vector<Action_upt> ActionUptVector;
 private:
+  typedef IBatchAction::RecordKeySet RecordKeySet;
+  typedef Container::BatchActions BatchActions;
+
   Packer();
 
   static bool txn_conflicts(
-      BatchAction* t, 
-      RecordSet* ex_locks_in_packing, 
-      RecordSet* sh_locks_in_packing); 
+      IBatchAction* t, 
+      RecordKeySet* ex_locks_in_packing, 
+      RecordKeySet* sh_locks_in_packing); 
 
 public:
-  static ActionUptVector get_packing(Container* c);
+  static BatchActions get_packing(Container* c);
 };
 
 #endif // PACKING_H_

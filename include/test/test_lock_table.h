@@ -1,7 +1,7 @@
 #ifndef TEST_LOCK_TABLE_H_
 #define TEST_LOCK_TABLE_H_
 
-#include "batch/batch_action.h"
+#include "batch/batch_action_interface.h"
 #include "test/test_lock_stage.h"
 
 class TestLockTable : public LockTable {
@@ -11,7 +11,9 @@ class TestLockTable : public LockTable {
       return lock_table;
     }
 
-    bool lock_table_contains_stage(BatchAction::RecKey k, LockStage* ls) {
+    bool lock_table_contains_stage(
+        RecordKey k, 
+        std::shared_ptr<LockStage> ls) {
       auto lq = lock_table.find(k);
       if (lq == lock_table.end()) return false;
 
@@ -20,16 +22,9 @@ class TestLockTable : public LockTable {
       //
       // We need to use the test lock stage class to access the type
       // of the lock easily.
-      TestLockStage tls(*ls);
       LockQueue::QueueElt* curr = lq->second->peek_head_elt();
       while (curr != nullptr) {
-        TestLockStage ctls(*curr->get_contents());
-
-        if (ctls.get_requesters() == tls.get_requesters() &&
-            ctls.get_holders() == tls.get_holders() &&
-            ctls.get_lock_type() == tls.get_lock_type()){
-          return true;
-        }
+        if (*ls == *curr->get_contents()) return true;
 
         curr = curr->get_next_elt();
       }

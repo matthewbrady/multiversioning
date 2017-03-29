@@ -5,118 +5,56 @@
 
 #include <cassert>
 
-Scheduler::Scheduler(SchedulerConfig sc):
-    Runnable(sc.m_cpu_number),
-    conf(sc),
-    state(SchedulerState::waiting_for_input)  
-{
-  // allocate memory up front.
-  batch_actions = 
-    std::make_unique<std::vector<std::unique_ptr<BatchAction>>>(
-        sc.batch_size_act);
-}
+Scheduler::Scheduler(
+    SchedulerThreadManager* manager,
+    int m_cpu_number):
+  SchedulerThread(manager, m_cpu_number)
+{};
 
 void Scheduler::StartWorking() {
-  // TODO: implement a flag for killing the thread.
-  while(true) {
+  while(!is_stop_requested()) {
     // get the batch actions
-    signalWaitingForInput();
-    conf.input->obtain_batch(this);
-
-    // make a batch schedule
-    signalBatchCreation();
-    makeBatchSchedule();
-    signalWaitingForMerge();
-    // TODO: Merge into the global schedule.
-    signalMerging(); // This goes away with the above TODO.
-    signalWaitingForExecSignal();
-    // TODO: Signal the execution threads
-    signalExecSignal(); // This goes away with the above TODO
+    batch_actions = std::make_unique<BatchActions>(
+        std::move(this->manager->request_input(this)));
+    process_batch();
+    this->manager->merge_into_global_schedule(this, std::move(lt));
+    this->manager->signal_exec_threads(this, std::move(workloads));
   }
 };
 
 void Scheduler::Init() {
 };
 
-SchedulerState Scheduler::getState() {
-  return state;
-};
-
-void Scheduler::makeBatchSchedule() {
-  // construct array container from the batch
+void Scheduler::process_batch() {
+  workloads = std::vector<std::shared_ptr<IBatchAction>>(batch_actions->size());
+  lt = BatchLockTable();
   ArrayContainer ac(std::move(batch_actions));
-  batch_actions = 
-    std::make_unique<std::vector<std::unique_ptr<BatchAction>>>(
-        conf.batch_size_act);
 
-  std::vector<std::unique_ptr<BatchAction>> packing;
+  // populate the batch lock table and workloads
+  unsigned int curr_workload_item = 0;
+  std::vector<std::unique_ptr<IBatchAction>> packing;
   while (ac.get_remaining_count() != 0) {
     // get packing
     packing = Packer::get_packing(&ac);
     ac.sort_remaining();
     // translate a packing into lock request
-    for (std::unique_ptr<BatchAction>& act : packing) {
-      lt.insert_lock_request(std::shared_ptr<BatchAction>(std::move(act)));
+    for (std::unique_ptr<IBatchAction>& act : packing) {
+      auto act_sptr = std::shared_ptr<IBatchAction>(std::move(act));
+      workloads[curr_workload_item++] = act_sptr;
+      lt.insert_lock_request(act_sptr);
     }
   }
+
+  assert(curr_workload_item == workloads.size());
+};
+
+Scheduler::~Scheduler() {
+};
+
+void Scheduler::signal_stop_working() {
+  xchgq(&stop_signal, 1);
 }
 
-unsigned int Scheduler::getMaxActions() {
-  return conf.batch_size_act;
-};
-
-void Scheduler::putAction(std::unique_ptr<BatchAction> act) {
-  batch_actions->push_back(std::move(act)); 
-};
-
-bool Scheduler::changeState(
-    SchedulerState nextState, 
-    SchedulerState expectedCurrState) {
-  // assertion to make sure that we never skip states.
-  return cmp_and_swap(
-      (uint64_t*) &state,
-      (uint64_t) expectedCurrState,
-      (uint64_t) nextState);
-};
-
-bool Scheduler::signalWaitingForInput() {
-  return changeState(
-      SchedulerState::waiting_for_input,
-      SchedulerState::signaling_execution); 
-};
-
-bool Scheduler::signalInput() {
-  return changeState(
-      SchedulerState::input,
-      SchedulerState::waiting_for_input);
-};
-
-bool Scheduler::signalBatchCreation() {
-  return changeState(
-      SchedulerState::batch_creation,
-      SchedulerState::input);
+bool Scheduler::is_stop_requested() {
+  return stop_signal;
 }
-
-bool Scheduler::signalWaitingForMerge() {
-  return changeState(
-      SchedulerState::waiting_to_merge,
-      SchedulerState::batch_creation);
-};
-
-bool Scheduler::signalMerging() { 
-  return changeState(
-      SchedulerState::batch_merging,
-      SchedulerState::waiting_to_merge);
-};
-
-bool Scheduler::signalWaitingForExecSignal() {
-  return changeState(
-      SchedulerState::waiting_to_signal_execution,
-      SchedulerState::batch_merging);
-};
-
-bool Scheduler::signalExecSignal() {
-  return changeState(
-      SchedulerState::signaling_execution,
-      SchedulerState::waiting_to_signal_execution);
-};

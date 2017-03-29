@@ -14,16 +14,16 @@ TEST(BatchLockTable, constructorTest) {
 TEST(BatchLockTable, insert_lock_requestTest) {
   BatchLockTable blt;
   blt.insert_lock_request(
-      std::make_shared<TestAction>(*TestAction::make_test_action_with_test_txn({1},{})));
+      std::shared_ptr<TestAction>(TestAction::make_test_action_with_test_txn({1},{})));
   ASSERT_EQ(1, blt.get_lock_table_data().size());
 }
 
 TEST(LockTable, merge_batch_tableTest) {
   BatchLockTable blt;
   blt.insert_lock_request(
-      std::make_shared<TestAction>(*TestAction::make_test_action_with_test_txn({1,2,3},{})));
+      std::shared_ptr<TestAction>(TestAction::make_test_action_with_test_txn({1,2,3},{})));
   blt.insert_lock_request(
-      std::make_shared<TestAction>(*TestAction::make_test_action_with_test_txn({4,5,6},{})));
+      std::shared_ptr<TestAction>(TestAction::make_test_action_with_test_txn({4,5,6},{})));
 
   TestLockTable lt;
   lt.merge_batch_table(blt);
@@ -50,9 +50,9 @@ TEST(LockTable, concurrent_merge_table_test) {
         // just two actions on conflicting elements
         blt = std::make_shared<BatchLockTable>();
         blt->insert_lock_request(
-            std::make_shared<TestAction>(*TestAction::make_test_action_with_test_txn({1,2,3},{4,5})));
+            std::shared_ptr<TestAction>(TestAction::make_test_action_with_test_txn({1,2,3},{4,5})));
         blt->insert_lock_request(
-            std::make_shared<TestAction>(*TestAction::make_test_action_with_test_txn({4,5},{1,2})));
+            std::shared_ptr<TestAction>(TestAction::make_test_action_with_test_txn({4,5},{1,2})));
 
         thread_data[i].push_back(blt);
         lt.merge_batch_table(*blt);
@@ -84,5 +84,11 @@ TEST(LockTable, concurrent_merge_table_test) {
       }
     } 
   }  
+
+  // make sure that the first lock stage for every lock queue has the lock.
+  for (auto& elt : lt.get_lock_table_data()) {
+    ASSERT_TRUE(elt.second->peek_head()->has_lock());
+  } 
+
   ASSERT_EQ(5, lt.get_lock_table_data().size());
 };

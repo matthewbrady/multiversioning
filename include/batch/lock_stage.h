@@ -2,7 +2,7 @@
 #define _LOCK_STAGE_H_
 
 #include "batch/lock_types.h"
-#include "batch/batch_action.h"
+#include "batch/batch_action_interface.h"
 
 #include <memory>
 #include <stdint.h>
@@ -26,14 +26,16 @@
  */
 class LockStage {
 public:
-  typedef std::shared_ptr<BatchAction> Action_spt;
-  typedef std::unordered_set<Action_spt> RequestingActions;
+  typedef std::unordered_set<std::shared_ptr<IBatchAction>> RequestingActions;
 
 protected:
   // The number of transactions holding on to the lock.
   uint64_t holders;
   LockType l_type;
   RequestingActions requesters;
+
+  // this is just to assert that no stage is given a lock more than once.
+  uint64_t has_been_given_lock;
 
 public:
   LockStage();
@@ -45,12 +47,17 @@ public:
   //
   // May only be called in a single-threaded scenarios. We do not coalesce adjacent shared stages
   // into single stages.
-  bool add_to_stage(Action_spt txn, LockType lt);
+  bool add_to_stage(std::shared_ptr<IBatchAction> txn, LockType lt);
   // Returns the new value of holders
   uint64_t decrement_holders(); 
   
   const RequestingActions& get_requesters() const; 
   uint64_t get_holders() const;
+
+  // return true if all actions within this lock stage have been finished.
+  bool finalize_action(std::shared_ptr<IBatchAction> act);
+  void notify_lock_obtained();
+  bool has_lock();
 
   friend bool operator==(const LockStage& ls1, const LockStage& ls2);
 };
