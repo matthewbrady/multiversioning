@@ -63,7 +63,6 @@ build/db:$(START_OBJECTS) $(OBJECTS)
 
 build/tests:$(OBJECTS) $(BATCHING_OBJECTS) $(TESTOBJECTS) $(NON_MAIN_STARTS)
 	@$(CXX) $(CFLAGS) $(INCLUDE) -o $@ $^ -L$(LIBPATH) $(LIBS) $(TEST_LIBS)
-	build/tests
 
 $(DEPSDIR)/stamp:
 	@mkdir -p $(DEPSDIR)
